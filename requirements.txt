@@ -1,0 +1,20 @@
+# Web Framework & Server
+Django==4.2.11
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Database (MySQL Support)
+mysqlclient==2.2.4
+
+# AI & Machine Learning
+google-generativeai==0.4.1
+deepface==0.0.92
+tensorflow-cpu==2.15.0  # CPU version is better for Render free tier
+opencv-python-headless==4.9.0.80  # Headless version for servers without GUI
+
+# Utilities
+numpy==1.26.4
+requests==2.31.0
+python-dotenv==1.0.1

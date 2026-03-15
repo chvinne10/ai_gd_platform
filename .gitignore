@@ -1,0 +1,15 @@
+# Virtual Environment
+ai_gd_backend/
+__pycache__/
+*.py[cod]
+db.sqlite3
+.env
+ai_gd_backend/
+venv/
+env/
+
+
+
+# OS files
+.DS_Store
+Thumbs.db
