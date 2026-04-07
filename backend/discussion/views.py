@@ -4,26 +4,21 @@ import numpy as np
 import google.generativeai as genai
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import DiscussionSession
 from deepface import DeepFace
 from django.conf import settings
 
-# Uses your existing Gemini API Key from settings
+# Configure Gemini
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
-class StartDiscussion(APIView):
+class StartDiscussion(APIView):  # <--- MUST MATCH URLS.PY
     def post(self, request):
         try:
-            model = genai.GenerativeModel('gemini-pro')
-            # Modification: Requesting a single topic, no lists.
-            prompt = "Give me one single, complex group discussion topic. Do not provide a list. Just the title."
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            prompt = "Give me one single, complex group discussion topic title. No lists."
             response = model.generate_content(prompt)
-            return Response({
-                "topic": response.text.strip(), 
-                "session_id": 101
-            })
+            return Response({"topic": response.text.strip()})
         except:
-            return Response({"topic": "Is technology making us less human?"})
+            return Response({"topic": "Impact of Artificial Intelligence on Future Careers"})
 
 class AnalyzeFrame(APIView):
     def post(self, request):
@@ -33,34 +28,27 @@ class AnalyzeFrame(APIView):
             res = DeepFace.analyze(img, actions=['emotion'], enforce_detection=False)
             return Response({"emotion": res[0]['dominant_emotion']})
         except:
-            return Response({"error": "fail"})
+            return Response({"emotion": "neutral"})
 
 class InterruptDiscussion(APIView):
-    """
-    New logic: The AI acts as a moderator and asks 'Why/How/What' 
-    based on the current transcript.
-    """
     def post(self, request):
         transcript = request.data.get('transcript', '')
-        if not transcript:
-            return Response({"question": "Please continue, I am listening."})
-
         try:
-            model = genai.GenerativeModel('gemini-pro')
-            # Modification: Forcing the AI to interrupt with 'Why', 'What', or 'How'
-            prompt = f"""
-            The user said: "{transcript}"
-            Act as a moderator. Ask exactly one follow-up question starting with 'Why', 'What', or 'How'.
-            Be brief and challenging. No lists. Just the question.
-            """
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            prompt = f"The user said: '{transcript}'. Ask one short 'Why' or 'How' question to challenge them."
             response = model.generate_content(prompt)
             return Response({"question": response.text.strip()})
         except:
-            return Response({"question": "How would you explain that point differently?"})
+            return Response({"question": "How would you justify that point?"})
 
-class FinishDiscussion(APIView):
+class HR_Evaluation(APIView):
     def post(self, request):
+        emotions = request.data.get('emotion_history', [])
+        # Simple scoring logic
+        positives = sum(1 for e in emotions if e in ['happy', 'neutral', 'surprise'])
+        score = (positives / len(emotions)) * 100 if emotions else 75
         return Response({
-            "status": "completed",
-            "report_url": "media/reports/sample.pdf"
+            "score": round(score, 1),
+            "grade": "A" if score > 80 else "B",
+            "status": "Selected" if score > 70 else "Waitlisted"
         })
